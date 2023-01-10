@@ -1,3 +1,2 @@
 # rowan - must be able to specify the province in each row of data (new column needed in parser)
-# marc - consolidate parsers together into common functions then have a main parser to use on different websites
 # marc - precompile a database where each row has a 'top 5' list of similar provision ids and their match percentage in other agreements (and maybe within the same agreement)
