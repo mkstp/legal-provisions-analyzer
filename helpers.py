@@ -4,12 +4,10 @@
 
 import csv
 import string
+import os
 from nltk import word_tokenize
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
-from sentence_transformers import SentenceTransformer
-
-NLP_MODEL = SentenceTransformer('all-MiniLM-L6-v2')
 WORDNET_LEMMATIZER = WordNetLemmatizer()
 
 
@@ -87,8 +85,19 @@ def format_export(data, path, field_names):
         csvwriter.writerows(data)
 
 
-def prepare_master(file1, file2):
-    pass
+def compile_row_ids():
+    data_folder = 'C:/Users/marcs/Documents/provisionsProject/Data/agreements'
+    row_id = 1
+    data = []
+    for filename in os.listdir(data_folder):
+        file_path = os.path.join(data_folder, filename)
+        with open(file_path, 'r') as file:
+            csvreader = csv.reader(file)
+            next(csvreader, None)  # skip header
+            for row in csvreader:
+                data.append([str(row_id)] + row)
+                row_id += 1
+    return data
 
 
 def collect_provisions(data_source_path, search_string, match_threshold_float):
