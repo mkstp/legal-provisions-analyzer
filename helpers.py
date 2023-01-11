@@ -80,8 +80,8 @@ def sort_descending(array, index):
 def format_export(data, path, field_names):
     # formats the data and then exports a csv file
     with open(path, 'w', newline='') as file:
-        csvwriter = csv.DictWriter(file, fieldnames=field_names)
-        csvwriter.writeheader()
+        csvwriter = csv.writer(file)
+        csvwriter.writerow(field_names)
         csvwriter.writerows(data)
 
 

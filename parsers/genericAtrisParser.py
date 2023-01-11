@@ -9,14 +9,16 @@ from bs4 import BeautifulSoup
 
 # for tlicho, tsawwassen, and anishinabek final agreements in ATRIS
 
-URL = 'https://www.rcaanc-cirnac.gc.ca/eng/1663876084479/1663876161241'
-DESTINATION_PATH = 'C:/Users/marcs/Documents/provisionsProject/Data/test.csv'
+URL = 'https://www.rcaanc-cirnac.gc.ca/eng/1292948193972/1543262085000'
+FILENAME = 'Tlicho.csv'
+DESTINATION_PATH = 'C:/Users/marcs/Documents/provisionsProject/Data/agreements/' + FILENAME
 YEAR = '2003'
 ROMAN = ['i', 'ii', 'iii', 'iv', 'v', 'vi', 'vii', 'viii', 'ix', 'x']
 ALPHA = list(string.ascii_lowercase)
 IGNORE_PART = [
     'About this site',
-    'Table of contents'
+    'Table of contents',
+    'Table of Contents',
 ]
 
 
@@ -148,14 +150,7 @@ def parse(link, export_path, export=False, debug=True):
 
         # only want to log data in cases where we find a paragraph or a bullet
         if log_data:
-            data.append({
-                'Agreement': title,
-                'Year': year,
-                'Part': part,
-                'Section': section,
-                'Provision Number': reference,
-                'Provision Text': provision_text
-            })
+            data.append([title, year, part, section, reference, provision_text])
             log_data = False
 
     # export to csv
