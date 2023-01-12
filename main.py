@@ -7,27 +7,27 @@ import pprint
 
 # test globals (to be provided eventually by external input)
 
-SOURCE_PATH = 'C:/Users/marcs/Documents/provisionsProject/Data/test.csv'
+DATA_FOLDER = 'C:/Users/marcs/Documents/provisionsProject/Data/agreements/'
 DESTINATION_PATH = 'C:/Users/marcs/Documents/provisionsProject/Data/export.csv'
 SEARCH_INPUT = 'interpretation'
-MATCH_THRESHOLD = 0.1
 
 
-def main(csv_path, export_path, search_string, match_threshold_float, export=False, debug=True):
+def main(source_path, export_path, search_string, export_flag=False, debug_flag=True):
     search_string = helpers.cleanup(search_string)
-    field_names = []
-    data = helpers.collect_provisions(csv_path, search_string, match_threshold_float)
-    data = helpers.sort_descending(data, -1)
+    data = helpers.collect_agreements(source_path)
+    provisions = [provision[7] for provision in data]
+    cluster_map = sorted(helpers.cluster_provisions(provisions))
+    export = helpers.format_export(data, cluster_map)
 
     # export to csv
-    if export:
-        helpers.format_export(data, export_path, field_names)
+    if export_flag:
+        helpers.export_csv(export[0], export_path, export[1])
 
     # check output
-    if debug:
+    if debug_flag:
         pp = pprint.PrettyPrinter(indent=4)
-        pp.pprint(data)
+        pp.pprint(cluster_map)
 
 
-main(SOURCE_PATH, DESTINATION_PATH, SEARCH_INPUT, MATCH_THRESHOLD)
+main(DATA_FOLDER, DESTINATION_PATH, SEARCH_INPUT)
 

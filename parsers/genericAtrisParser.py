@@ -9,36 +9,51 @@ from bs4 import BeautifulSoup
 
 # for tlicho, tsawwassen, and anishinabek final agreements in ATRIS
 
-URL = 'https://www.rcaanc-cirnac.gc.ca/eng/1292948193972/1543262085000'
-FILENAME = 'Tlicho.csv'
+URL = 'https://www.rcaanc-cirnac.gc.ca/eng/1663876084479/1663876161241'
+FILENAME = 'Anishinabek.csv'
 DESTINATION_PATH = 'C:/Users/marcs/Documents/provisionsProject/Data/agreements/' + FILENAME
-YEAR = '2003'
+YEAR = '2019'
 ROMAN = ['i', 'ii', 'iii', 'iv', 'v', 'vi', 'vii', 'viii', 'ix', 'x']
 ALPHA = list(string.ascii_lowercase)
 IGNORE_PART = [
-    'About this site',
-    'Table of contents',
-    'Table of Contents',
+    'about this site',
+    'table of contents',
+    'anishinabek',
+    'tlicho',
+    'tsawwassen',
+    'chapter',
+    'section',
+    'subsection'
 ]
 
 
-def parse(link, export_path, export=False, debug=True):
+def parse(link, export_path, export_flag=False, debug_flag=True):
     soup = BeautifulSoup((requests.get(link)).content, 'html.parser')
     log_data = False
+    provision_kernel = ''  # temp variable which holds the kernel of a provision reference
     enum_type = 'nil'
     prev_enum_type = 'nil'
     int_index = 0
     alpha_index = 0
     roman_index = 0
 
-    field_names = ['Agreement', 'Year', 'Part', 'Section', 'Provision Number', 'Provision Text']
-    title = ''
+    field_names = [
+        'Agreement',  # name of the document
+        'Year',  # year the document was signed
+        'Part',  # for style purposes this cannot be called a 'chapter' (but it's basically a chapter)
+        'Section',  # refers to any subheading under a part heading
+        'Provision Reference',  # number within the written document
+        'Provision Text',  # the content of the provision
+        'search_part',  # a simplified combination of part and section for search purposes
+        'search_text'  # a simplified version of the provision text for search purposes
+    ]
+
+    agreement = ''
     year = YEAR
-    part = ''  # for style purposes this cannot be called a 'chapter'
-    section = ''  # refers to any subheading under a part heading
-    provision_num = ''  # number within the written document
-    reference = ''
-    provision_text = ''  # the content of the provision
+    part = ''
+    section = ''
+    provision_reference = ''
+    provision_text = ''
     data = []
 
     for child in soup.main.next_elements:
@@ -46,7 +61,7 @@ def parse(link, export_path, export=False, debug=True):
 
         # case for title
         if child.name == 'h1':
-            title = child.get_text()
+            agreement = child.get_text()
             continue
 
         # cases for headings
@@ -60,7 +75,7 @@ def parse(link, export_path, export=False, debug=True):
             continue
 
         # case for paragraphs
-        if child.name == 'p' and part not in IGNORE_PART:
+        if child.name == 'p' and part.lower() not in IGNORE_PART:
             prev_enum_type = 'nil'
             log_data = True
             # check if the first word in the provision is a number
@@ -68,8 +83,8 @@ def parse(link, export_path, export=False, debug=True):
                 int(child.get_text()[0])
 
                 # if so, update the provision_num
-                provision_num = (child.get_text().split(' ', 1)[0]).strip('\n')
-                reference = provision_num
+                provision_kernel = (child.get_text().split(' ', 1)[0]).strip('\n')
+                provision_reference = provision_kernel
 
                 # update provision_text with remainder of provision
                 provision_text = " ".join(child.get_text().split(' ')[1:])
@@ -77,19 +92,20 @@ def parse(link, export_path, export=False, debug=True):
             # when the first word is not a number
             except ValueError:
                 provision_text = child.get_text()
-                reference = provision_num
+                provision_reference = provision_kernel
 
             # when the paragraph is completely empty
             except IndexError:
                 continue
 
         # case for list bullets
-        if child.name == 'li' and part not in IGNORE_PART:
+        if child.name == 'li' and part.lower() not in IGNORE_PART:
             log_data = True
             provision_text = child.get_text()
 
             # for numbering, update what type of bullet it is
             if 'class' in child.parent.attrs:
+                # for simplicity, going to treat uppercase bullets like lower case bullets
                 if 'lst-upr-alph' in child.parent.attrs['class'][0]:
                     enum_type = 'lst-lwr-alph'
                 else:
@@ -126,7 +142,6 @@ def parse(link, export_path, export=False, debug=True):
 
             if 'lst-lwr-alph' in enum_type and 'lst-lwr-alph' in prev_enum_type:
                 alpha_index += 1
-
                 append_bullet = f"({int_index})({ALPHA[alpha_index]})"
 
             if 'lst-lwr-rmn' in enum_type and 'lst-lwr-alph' in prev_enum_type:
@@ -146,19 +161,29 @@ def parse(link, export_path, export=False, debug=True):
                 append_bullet = f"({int_index})({ALPHA[alpha_index]})({ROMAN[roman_index]})"
 
             prev_enum_type = enum_type
-            reference = provision_num + append_bullet
+            provision_reference = provision_kernel + append_bullet
 
-        # only want to log data in cases where we find a paragraph or a bullet
         if log_data:
-            data.append([title, year, part, section, reference, provision_text])
+            search_part = helpers.cleanup(f"{part} {section}", IGNORE_PART)
+            search_text = helpers.cleanup(provision_text, IGNORE_PART)
+            data.append([
+                agreement,
+                year,
+                part,
+                section,
+                provision_reference,
+                provision_text,
+                search_part,
+                search_text
+            ])
             log_data = False
 
     # export to csv
-    if export:
-        helpers.format_export(data, export_path, field_names)
+    if export_flag:
+        helpers.export_csv(data, export_path, field_names)
 
     # check output
-    if debug:
+    if debug_flag:
         pp = pprint.PrettyPrinter(indent=4)
         pp.pprint(data)
 

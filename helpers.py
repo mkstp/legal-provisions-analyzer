@@ -5,16 +5,19 @@
 import csv
 import string
 import os
+import time
 from nltk import word_tokenize
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
+from sentence_transformers import SentenceTransformer, util
+NLP_MODEL = SentenceTransformer('all-MiniLM-L6-v2')
 WORDNET_LEMMATIZER = WordNetLemmatizer()
 
 
 # helper functions
 
 
-def cleanup(text):
+def cleanup(text, ignore_words=[]):
     # making everything lower case for faster comparisons
     sample = text.lower()
     # removing all english-based punctuation (this will also remove punctuation used in indigenous language)
@@ -25,12 +28,17 @@ def cleanup(text):
     sample = word_tokenize(sample)
     # removing stop words 'of' 'and' 'or' etc.
     sample = [token for token in sample if token not in stopwords.words('english')]
+    # removing special words
+    sample = [token for token in sample if token not in ignore_words]
     # lemmatization of words means to simplify versions of words with the same meaning to a base version
     sample = [WORDNET_LEMMATIZER.lemmatize(token) for token in sample]
+    # putting everything back together into a string
+    sample = " ".join([word for word in sample])
     return sample
 
 
 def check_similar(search_text, compare_text):
+    # deprecated; function pre-existing in library
     # implementation of a cosine similarity algorithm
     # this changes each input string into a vector then compares their similarity as an angular distance
     x_set = {word for word in search_text}
@@ -57,27 +65,13 @@ def check_similar(search_text, compare_text):
         return 0.0
 
 
-def sort_descending(array, index):
-    # quicksort
-    greater = []
-    equal = []
-    less = []
-
-    if len(array) > 1:
-        pivot = array[0][index]
-        for x in array:
-            if x[index] < pivot:
-                less.append(x)
-            elif x[index] == pivot:
-                equal.append(x)
-            elif x[index] > pivot:
-                greater.append(x)
-        return sort_descending(greater, index)+equal+sort_descending(less, index)
-    else:
-        return array
+def format_export(data, cluster_map):
+    # needs to return a new list of the provisions according to the cluster map
+    # and a list of field names for a csv export
+    pass
 
 
-def format_export(data, path, field_names):
+def export_csv(data, path, field_names):
     # formats the data and then exports a csv file
     with open(path, 'w', newline='') as file:
         csvwriter = csv.writer(file)
@@ -85,32 +79,27 @@ def format_export(data, path, field_names):
         csvwriter.writerows(data)
 
 
-def compile_row_ids():
-    data_folder = 'C:/Users/marcs/Documents/provisionsProject/Data/agreements'
-    row_id = 1
+def collect_agreements(source_path):
     data = []
-    for filename in os.listdir(data_folder):
-        file_path = os.path.join(data_folder, filename)
+    for filename in os.listdir(source_path):
+        file_path = os.path.join(source_path, filename)
         with open(file_path, 'r') as file:
             csvreader = csv.reader(file)
             next(csvreader, None)  # skip header
             for row in csvreader:
-                data.append([str(row_id)] + row)
-                row_id += 1
+                data.append(row)
+    print(f"{len(data)} provisions collected.")
     return data
 
 
-def collect_provisions(data_source_path, search_string, match_threshold_float):
-    data = []
-    with open(data_source_path, 'r') as file:
-        csvreader = csv.reader(file)
-        for row in csvreader:
-            # will need to check back on this to change the index number if the underlying csv's change format
-            compare_string = cleanup(row[2] + " " + row[3] + " " + row[5])
-            score_float = check_similar(search_string, compare_string)
-            if score_float >= match_threshold_float:
-                data.append(row + [score_float])
-    return data
+def cluster_provisions(sentences, size=2, match_percent=0.85):
+    start_time = time.time()
+    print("Encoding the corpus; This might take a while...")
+    corpus_embeddings = NLP_MODEL.encode(sentences, batch_size=64, show_progress_bar=True, convert_to_tensor=True)
+    print("Start clustering")
+    clusters = util.community_detection(corpus_embeddings, min_community_size=size, threshold=match_percent)
+    print(f"Clustering done after {time.time() - start_time}.")
+    return clusters
 
 
 
