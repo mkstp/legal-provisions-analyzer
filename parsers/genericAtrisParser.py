@@ -3,6 +3,7 @@
 
 import helpers
 import pprint
+import csv
 import string
 import requests
 from bs4 import BeautifulSoup
@@ -180,7 +181,10 @@ def parse(link, export_path, export_flag=False, debug_flag=True):
 
     # export to csv
     if export_flag:
-        helpers.export_csv(data, export_path, field_names)
+        with open(export_path, 'w', newline='') as file:
+            csvwriter = csv.writer(file)
+            csvwriter.writerow(field_names)
+            csvwriter.writerows(data)
 
     # check output
     if debug_flag:

@@ -65,22 +65,23 @@ def check_similar(search_text, compare_text):
         return 0.0
 
 
-def format_export(data, cluster_map):
-    # needs to return a new list of the provisions according to the cluster map
-    # and a list of field names for a csv export
-    pass
-
-
-def export_csv(data, path, field_names):
-    # formats the data and then exports a csv file
-    with open(path, 'w', newline='') as file:
-        csvwriter = csv.writer(file)
-        csvwriter.writerow(field_names)
-        csvwriter.writerows(data)
+def format_export(fields, data, cluster_map):
+    export = []
+    for cluster in cluster_map:
+        split = dict.fromkeys(fields, '')
+        for row_index in cluster:
+            row = data[row_index]
+            key = f"{row[0]}\n{row[1]}"
+            value = f"Part: {row[2]}\nSection: {row[3]}\nReference: {row[4]}\nText: {row[5]}\n\n\n"
+            split[key] += value
+        export.append(split)
+    exclude = sorted([cluster for cluster in cluster_map])
+    return export
 
 
 def collect_agreements(source_path):
     data = []
+    agreement_names = []
     for filename in os.listdir(source_path):
         file_path = os.path.join(source_path, filename)
         with open(file_path, 'r') as file:
@@ -88,17 +89,21 @@ def collect_agreements(source_path):
             next(csvreader, None)  # skip header
             for row in csvreader:
                 data.append(row)
+                agreement_name = f"{row[0]}\n{row[1]}"
+                if agreement_name not in agreement_names:
+                    agreement_names.append(agreement_name)
+    print_agr = '\n'.join([name for name in agreement_names])
+    print(f"Agreements are:\n{print_agr}")
     print(f"{len(data)} provisions collected.")
-    return data
+    return agreement_names, data
 
 
 def cluster_provisions(sentences, size=2, match_percent=0.85):
     start_time = time.time()
     print("Encoding the corpus; This might take a while...")
     corpus_embeddings = NLP_MODEL.encode(sentences, batch_size=64, show_progress_bar=True, convert_to_tensor=True)
-    print("Start clustering")
     clusters = util.community_detection(corpus_embeddings, min_community_size=size, threshold=match_percent)
-    print(f"Clustering done after {time.time() - start_time}.")
+    print(f"Done after {time.time() - start_time}.")
     return clusters
 
 
