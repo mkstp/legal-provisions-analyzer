@@ -65,24 +65,31 @@ def check_similar(search_text, compare_text):
         return 0.0
 
 
+def format_cell(row):
+    # string formatter for individual cells in csv
+    key = f"{row[0]}\n{row[1]}"
+    value = f"Part: {row[2]}\nSection: {row[3]}\nReference: {row[4]}\nText: {row[5]}\n\n\n"
+    return key, value
+
+
 def format_export(fields, data, cluster_map):
     export = []
+    exclude_provisions = sorted([row_index for sublist in cluster_map for row_index in sublist])
+
+    # collect clustered provisions first
     for cluster in cluster_map:
         common = dict.fromkeys(fields, '')
         for row_index in cluster:
-            row = data[row_index]
-            key = f"{row[0]}\n{row[1]}"
-            value = f"Part: {row[2]}\nSection: {row[3]}\nReference: {row[4]}\nText: {row[5]}\n\n\n"
-            common[key] += value
+            cell = format_cell(data[row_index])
+            common[cell[0]] += cell[1]
         export.append(common)
-    exclude_provisions = sorted([row_index for sublist in cluster_map for row_index in sublist])
+
+    # then collect all remaining unique provisions
     for row_index in range(len(data)):
         if row_index not in exclude_provisions:
             unique = dict.fromkeys(fields, '')
-            row = data[row_index]
-            key = f"{row[0]}\n{row[1]}"
-            value = f"Part: {row[2]}\nSection: {row[3]}\nReference: {row[4]}\nText: {row[5]}\n\n\n"
-            unique[key] = value
+            cell = format_cell(data[row_index])
+            unique[cell[0]] = cell[1]
             export.append(unique)
     return export
 
