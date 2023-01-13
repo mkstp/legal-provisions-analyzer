@@ -10,10 +10,10 @@ from bs4 import BeautifulSoup
 
 # for tlicho, tsawwassen, and anishinabek final agreements in ATRIS
 
-URL = 'https://www.rcaanc-cirnac.gc.ca/eng/1663876084479/1663876161241'
-FILENAME = 'Anishinabek.csv'
+URL = 'https://www.rcaanc-cirnac.gc.ca/eng/1100100022706/1617737111330'
+FILENAME = 'Tsawwassen.csv'
 DESTINATION_PATH = 'C:/Users/marcs/Documents/provisionsProject/Data/agreements/' + FILENAME
-YEAR = '2019'
+YEAR = '2007'
 ROMAN = ['i', 'ii', 'iii', 'iv', 'v', 'vi', 'vii', 'viii', 'ix', 'x']
 ALPHA = list(string.ascii_lowercase)
 IGNORE_PART = [
