@@ -68,14 +68,22 @@ def check_similar(search_text, compare_text):
 def format_export(fields, data, cluster_map):
     export = []
     for cluster in cluster_map:
-        split = dict.fromkeys(fields, '')
+        common = dict.fromkeys(fields, '')
         for row_index in cluster:
             row = data[row_index]
             key = f"{row[0]}\n{row[1]}"
             value = f"Part: {row[2]}\nSection: {row[3]}\nReference: {row[4]}\nText: {row[5]}\n\n\n"
-            split[key] += value
-        export.append(split)
-    exclude = sorted([cluster for cluster in cluster_map])
+            common[key] += value
+        export.append(common)
+    exclude_provisions = sorted([row_index for sublist in cluster_map for row_index in sublist])
+    for row_index in range(len(data)):
+        if row_index not in exclude_provisions:
+            unique = dict.fromkeys(fields, '')
+            row = data[row_index]
+            key = f"{row[0]}\n{row[1]}"
+            value = f"Part: {row[2]}\nSection: {row[3]}\nReference: {row[4]}\nText: {row[5]}\n\n\n"
+            unique[key] = value
+            export.append(unique)
     return export
 
 
