@@ -50,31 +50,14 @@ def cleanup(text, ignore_words=[]):
 
 
 def check_similar(search_text, compare_text):
-    # implementation of a cosine similarity algorithm
-    # this changes each input string into a vector then compares their similarity as an angular distance
-    # returns the score as a percentage float
-    x_set = {word for word in search_text}
-    y_set = {word for word in compare_text}
-    rvector = x_set.union(y_set)
-    xvector = []
-    yvector = []
-    for word in rvector:
-        if word in x_set:
-            xvector.append(1)
-        else:
-            xvector.append(0)
-        if word in y_set:
-            yvector.append(1)
-        else:
-            yvector.append(0)
-    c = 0
-    for i in range(len(rvector)):
-        c += xvector[i]*yvector[i]
-    if c > 0:
-        cosine = c / float((sum(xvector)*sum(yvector))**0.5)
-        return cosine
-    else:
-        return 0.0
+    # returns the score as an integer which represents the number of hits
+    x_list = search_text.split()
+    y_dict = Counter(compare_text.split())
+    score = 0
+    for word in x_list:
+        if word in y_dict:
+            score += y_dict[word]
+    return score
 
 
 def format_cell(row):
@@ -112,7 +95,6 @@ def format_export(fields, data, cluster_map):
 
 
 def collect_agreements(source_path):
-    print("Collecting agreements...")
     data = []
     agreement_names = []
     for filename in os.listdir(source_path):
@@ -140,5 +122,15 @@ def cluster_provisions(sentences, size=2, match_percent=0.85):
     return clusters
 
 
+def search_filter(data, search_string):
+    output = []
+    for row in data:
+        search_score = check_similar(search_string, row['Search Terms'])
+        if search_score > 0:
+            row['Search Score'] = search_score
+            output.append(row)
+
+    output = sorted(output, key=lambda item: item['Search Score'], reverse=True)
+    return output
 
 

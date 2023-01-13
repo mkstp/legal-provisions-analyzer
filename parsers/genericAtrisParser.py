@@ -24,7 +24,10 @@ IGNORE_PART = [
     'tsawwassen',
     'chapter',
     'section',
-    'subsection'
+    'subsection',
+    'part',
+    'first',
+    'nation'
 ]
 
 

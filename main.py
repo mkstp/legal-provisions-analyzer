@@ -15,20 +15,19 @@ SEARCH_INPUT = 'ratification'
 
 def main(source_path, export_path, search_string, export_flag=False, debug_flag=True):
     search_string = helpers.cleanup(search_string)
+    print("Collecting agreements...")
     agreements = helpers.collect_agreements(source_path)
-    field_names = agreements[0] + ['Search Terms'] + ['Search Score']
+    field_names = agreements[0]
     data = agreements[1]
     provisions = [row[7] for row in data]
     cluster_map = sorted(helpers.cluster_provisions(provisions))
 
     print("Compiling search results...")
     export = helpers.format_export(field_names, data, cluster_map)
-
+    export = helpers.search_filter(export, search_string)
     for row in export:
-        search_score = helpers.check_similar(search_string, row['Search Terms'])
-        row['Search Score'] = search_score
-
-    export = sorted(export, key=lambda item: item['Search Score'], reverse=True)
+        del row['Search Terms']
+        del row['Search Score']
 
     # export to csv
     if export_flag:
