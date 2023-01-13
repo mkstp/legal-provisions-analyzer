@@ -10,17 +10,25 @@ import csv
 
 DATA_FOLDER = 'C:/Users/marcs/Documents/provisionsProject/Data/agreements/'
 DESTINATION_PATH = 'C:/Users/marcs/Documents/provisionsProject/Data/export.csv'
-SEARCH_INPUT = 'interpretation'
+SEARCH_INPUT = 'ratification'
 
 
 def main(source_path, export_path, search_string, export_flag=False, debug_flag=True):
     search_string = helpers.cleanup(search_string)
     agreements = helpers.collect_agreements(source_path)
-    field_names = agreements[0]
+    field_names = agreements[0] + ['Search Terms'] + ['Search Score']
     data = agreements[1]
     provisions = [row[7] for row in data]
     cluster_map = sorted(helpers.cluster_provisions(provisions))
+
+    print("Compiling search results...")
     export = helpers.format_export(field_names, data, cluster_map)
+
+    for row in export:
+        search_score = helpers.check_similar(search_string, row['Search Terms'])
+        row['Search Score'] = search_score
+
+    export = sorted(export, key=lambda item: item['Search Score'], reverse=True)
 
     # export to csv
     if export_flag:

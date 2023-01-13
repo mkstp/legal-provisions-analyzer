@@ -6,12 +6,24 @@ import csv
 import string
 import os
 import time
+from collections import Counter
 from nltk import word_tokenize
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 from sentence_transformers import SentenceTransformer, util
 NLP_MODEL = SentenceTransformer('all-MiniLM-L6-v2')
 WORDNET_LEMMATIZER = WordNetLemmatizer()
+IGNORE_WORDS = [
+    'anishinabek',
+    'tlicho',
+    'tsawwassen',
+    'part',
+    'chapter',
+    'section',
+    'subsection',
+    'first',
+    'nation'
+]
 
 
 # helper functions
@@ -38,9 +50,9 @@ def cleanup(text, ignore_words=[]):
 
 
 def check_similar(search_text, compare_text):
-    # deprecated; function pre-existing in library
     # implementation of a cosine similarity algorithm
     # this changes each input string into a vector then compares their similarity as an angular distance
+    # returns the score as a percentage float
     x_set = {word for word in search_text}
     y_set = {word for word in compare_text}
     rvector = x_set.union(y_set)
@@ -79,15 +91,20 @@ def format_export(fields, data, cluster_map):
     # collect clustered provisions first
     for cluster in cluster_map:
         common = dict.fromkeys(fields, '')
+        searchable = ''
         for row_index in cluster:
+            searchable += f"{data[row_index][6]} {data[row_index][7]} "
             cell = format_cell(data[row_index])
             common[cell[0]] += cell[1]
+        common['Search Terms'] = searchable
         export.append(common)
 
     # then collect all remaining unique provisions
     for row_index in range(len(data)):
         if row_index not in exclude_provisions:
             unique = dict.fromkeys(fields, '')
+            searchable = f"{data[row_index][6]} {data[row_index][7]} "
+            unique['Search Terms'] = searchable
             cell = format_cell(data[row_index])
             unique[cell[0]] = cell[1]
             export.append(unique)
@@ -95,6 +112,7 @@ def format_export(fields, data, cluster_map):
 
 
 def collect_agreements(source_path):
+    print("Collecting agreements...")
     data = []
     agreement_names = []
     for filename in os.listdir(source_path):
