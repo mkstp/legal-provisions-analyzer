@@ -118,7 +118,7 @@ def cluster_provisions(sentences, size=2, match_percent=0.85):
     print("Encoding the corpus; This might take a while...")
     corpus_embeddings = NLP_MODEL.encode(sentences, batch_size=64, show_progress_bar=True, convert_to_tensor=True)
     clusters = util.community_detection(corpus_embeddings, min_community_size=size, threshold=match_percent)
-    print(f"Done after {time.time() - start_time}.")
+    print(f"{len(sentences)**2} provision comparisons done after {round(time.time() - start_time)} seconds.")
     return clusters
 
 
