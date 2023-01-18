@@ -10,7 +10,7 @@ import csv
 
 DATA_FOLDER = 'C:/Users/marcs/Documents/provisionsProject/Data/agreements/'
 DESTINATION_PATH = 'C:/Users/marcs/Documents/provisionsProject/Data/export.csv'
-SEARCH_INPUT = 'ratification'
+SEARCH_INPUT = 'new money concluding treaties comprehensive claims self government constructive arrangements'
 
 
 def main(source_path, export_path, search_string, export_flag=False, debug_flag=True):
