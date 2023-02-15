@@ -8,12 +8,12 @@ import string
 import requests
 from bs4 import BeautifulSoup
 
-# for tlicho, tsawwassen, and anishinabek final agreements in ATRIS
+# for final agreements in ATRIS
 
-URL = 'https://www.rcaanc-cirnac.gc.ca/eng/1100100022706/1617737111330'
-FILENAME = 'Tsawwassen.csv'
+URL = 'https://www.rcaanc-cirnac.gc.ca/eng/1294431204858/1542818525983'
+FILENAME = 'Nacho_Nyak_Final_Agreement.csv'
 DESTINATION_PATH = 'C:/Users/marcs/Documents/provisionsProject/Data/agreements/' + FILENAME
-YEAR = '2007'
+YEAR = '1993'
 ROMAN = ['i', 'ii', 'iii', 'iv', 'v', 'vi', 'vii', 'viii', 'ix', 'x']
 ALPHA = list(string.ascii_lowercase)
 IGNORE_PART = [
@@ -48,7 +48,7 @@ def parse(link, export_path, export_flag=False, debug_flag=True):
         'Section',  # refers to any subheading under a part heading
         'Provision Reference',  # number within the written document
         'Provision Text',  # the content of the provision
-        'search_part',  # a simplified combination of part and section for search purposes
+        # 'search_part',  # a simplified combination of part and section for search purposes
         'search_text'  # a simplified version of the provision text for search purposes
     ]
 
@@ -87,11 +87,11 @@ def parse(link, export_path, export_flag=False, debug_flag=True):
                 int(child.get_text()[0])
 
                 # if so, update the provision_num
-                provision_kernel = (child.get_text().split(' ', 1)[0]).strip('\n')
+                provision_kernel = (child.get_text().replace('\n', " ").split(' ', 1)[0])
                 provision_reference = provision_kernel
 
                 # update provision_text with remainder of provision
-                provision_text = " ".join(child.get_text().split(' ')[1:])
+                provision_text = " ".join(child.get_text().replace('\n', " ").split(' ')[1:])
 
             # when the first word is not a number
             except ValueError:
@@ -122,11 +122,11 @@ def parse(link, export_path, export_flag=False, debug_flag=True):
 
             if 'lst-lwr-alph' in enum_type and prev_enum_type == 'nil':
                 alpha_index = 0
-                append_bullet = f"({int_index})({ALPHA[alpha_index]})"
+                append_bullet = f"({ALPHA[alpha_index]})"
 
             if 'lst-lwr-rmn' in enum_type and prev_enum_type == 'nil':
                 roman_index = 0
-                append_bullet = f"({int_index})({ALPHA[alpha_index]})({ROMAN[roman_index]})"
+                append_bullet = f"({ROMAN[roman_index]})"
 
             if enum_type == 'lst-spcd' and prev_enum_type == 'lst-spcd':
                 int_index += 1
@@ -146,11 +146,11 @@ def parse(link, export_path, export_flag=False, debug_flag=True):
 
             if 'lst-lwr-alph' in enum_type and 'lst-lwr-alph' in prev_enum_type:
                 alpha_index += 1
-                append_bullet = f"({int_index})({ALPHA[alpha_index]})"
+                append_bullet = f"({ALPHA[alpha_index]})"
 
             if 'lst-lwr-rmn' in enum_type and 'lst-lwr-alph' in prev_enum_type:
                 roman_index = 0
-                append_bullet = f"({int_index})({ALPHA[alpha_index]})({ROMAN[roman_index]})"
+                append_bullet = f"({ALPHA[alpha_index]})({ROMAN[roman_index]})"
 
             if enum_type == 'lst-spcd' and 'lst-lwr-rmn' in prev_enum_type:
                 int_index += 1
@@ -158,18 +158,18 @@ def parse(link, export_path, export_flag=False, debug_flag=True):
 
             if 'lst-lwr-alph' in enum_type and 'lst-lwr-rmn' in prev_enum_type:
                 alpha_index += 1
-                append_bullet = f"({int_index})({ALPHA[alpha_index]})"
+                append_bullet = f"({ALPHA[alpha_index]})"
 
             if 'lst-lwr-rmn' in enum_type and 'lst-lwr-rmn' in prev_enum_type:
                 roman_index += 1
-                append_bullet = f"({int_index})({ALPHA[alpha_index]})({ROMAN[roman_index]})"
+                append_bullet = f"({ALPHA[alpha_index]})({ROMAN[roman_index]})"
 
             prev_enum_type = enum_type
             provision_reference = provision_kernel + append_bullet
 
         if log_data:
             search_part = helpers.cleanup(f"{part} {section}", IGNORE_PART)
-            search_text = helpers.cleanup(provision_text, IGNORE_PART)
+            search_text = search_part + " " + helpers.cleanup(provision_text, IGNORE_PART)
             data.append([
                 agreement,
                 year,
@@ -177,7 +177,7 @@ def parse(link, export_path, export_flag=False, debug_flag=True):
                 section,
                 provision_reference,
                 provision_text,
-                search_part,
+                # search_part
                 search_text
             ])
             log_data = False
@@ -192,7 +192,7 @@ def parse(link, export_path, export_flag=False, debug_flag=True):
     # check output
     if debug_flag:
         pp = pprint.PrettyPrinter(indent=4)
-        pp.pprint(data)
+        pp.pprint(data[:100])  # first x rows
 
 
 parse(URL, DESTINATION_PATH, True, False)

@@ -7,6 +7,7 @@ import string
 import os
 import time
 from collections import Counter
+from typing import List
 from nltk import word_tokenize
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
@@ -51,10 +52,10 @@ def cleanup(text, ignore_words=[]):
 
 def check_similar(search_text, compare_text):
     # returns the score as an integer which represents the number of hits
-    x_list = search_text.split()
+    x_list = set(search_text.split())
     y_dict = Counter(compare_text.split())
     score = 0
-    for word in x_list:
+    for word in x_list:  # this should be a set; wrap it in the set function; considered a logic error
         if word in y_dict:
             score += y_dict[word]
     return score
