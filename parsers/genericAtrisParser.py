@@ -10,18 +10,15 @@ from bs4 import BeautifulSoup
 
 # for final agreements in ATRIS
 
-URL = 'https://www.rcaanc-cirnac.gc.ca/eng/1294431204858/1542818525983'
-FILENAME = 'Nacho_Nyak_Final_Agreement.csv'
+URL = 'https://www.rcaanc-cirnac.gc.ca/eng/1100100031766/1543001371378'
+FILENAME = 'westbank_SGA.csv'
 DESTINATION_PATH = 'C:/Users/marcs/Documents/provisionsProject/Data/agreements/' + FILENAME
-YEAR = '1993'
+YEAR = '2005'
 ROMAN = ['i', 'ii', 'iii', 'iv', 'v', 'vi', 'vii', 'viii', 'ix', 'x']
 ALPHA = list(string.ascii_lowercase)
 IGNORE_PART = [
     'about this site',
     'table of contents',
-    'anishinabek',
-    'tlicho',
-    'tsawwassen',
     'chapter',
     'section',
     'subsection',
@@ -161,7 +158,8 @@ def parse(link, export_path, export_flag=False, debug_flag=True):
                 append_bullet = f"({ALPHA[alpha_index]})"
 
             if 'lst-lwr-rmn' in enum_type and 'lst-lwr-rmn' in prev_enum_type:
-                roman_index += 1
+                if roman_index < 9:
+                    roman_index += 1
                 append_bullet = f"({ALPHA[alpha_index]})({ROMAN[roman_index]})"
 
             prev_enum_type = enum_type

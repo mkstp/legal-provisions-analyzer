@@ -10,7 +10,7 @@ import csv
 
 DATA_FOLDER = 'C:/Users/marcs/Documents/provisionsProject/Data/agreements/'
 DESTINATION_PATH = 'C:/Users/marcs/Documents/provisionsProject/Data/export.csv'
-SEARCH_INPUT = 'welfare social support program'
+SEARCH_INPUT = 'self-government law-making governance'
 
 
 def main(source_path, export_path, search_string, export_flag=False, debug_flag=True):
@@ -19,7 +19,7 @@ def main(source_path, export_path, search_string, export_flag=False, debug_flag=
     agreements = helpers.collect_agreements(source_path)
     field_names = agreements[0]
     data = agreements[1]
-    provisions = [row[7] for row in data]
+    provisions = [row[6] for row in data]
     cluster_map = sorted(helpers.cluster_provisions(provisions))
 
     print("Compiling search results...")

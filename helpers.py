@@ -16,8 +16,13 @@ NLP_MODEL = SentenceTransformer('all-MiniLM-L6-v2')
 WORDNET_LEMMATIZER = WordNetLemmatizer()
 IGNORE_WORDS = [
     'anishinabek',
+    'westbank',
     'tlicho',
     'tsawwassen',
+    'nacho',
+    'nyak',
+    'teslin',
+    'tlingit',
     'part',
     'chapter',
     'section',
@@ -77,7 +82,7 @@ def format_export(fields, data, cluster_map):
         common = dict.fromkeys(fields, '')
         searchable = ''
         for row_index in cluster:
-            searchable += f"{data[row_index][6]} {data[row_index][7]} "
+            searchable += f"{data[row_index][6]}"
             cell = format_cell(data[row_index])
             common[cell[0]] += cell[1]
         common['Search Terms'] = searchable
@@ -87,7 +92,7 @@ def format_export(fields, data, cluster_map):
     for row_index in range(len(data)):
         if row_index not in exclude_provisions:
             unique = dict.fromkeys(fields, '')
-            searchable = f"{data[row_index][6]} {data[row_index][7]} "
+            searchable = f"{data[row_index][6]}"
             unique['Search Terms'] = searchable
             cell = format_cell(data[row_index])
             unique[cell[0]] = cell[1]
